@@ -75,8 +75,14 @@ app.use((err, req, res, next) => {
 });
 
 
-const PORT = process.env.PORT || 5001;
-
-app.listen(PORT, () => {
-  console.log(`🚀 GreenTrade API running on port ${PORT}`);
+const PORT = process.env.PORT || 10000;
+mongoose.connection.once("open", () => {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 GreenTrade API running on port ${PORT}`);
+  });
 });
+if (mongoose.connection.readyState === 1) {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 GreenTrade API running on port ${PORT}`);
+  });
+}
