@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import ReviewForm from '../components/ReviewForm';
+import ReviewsList from '../components/ReviewsList';
+import StarRating from '../components/StarRating';
 
 const STATUSES = ['Available', 'Pending', 'Gifted'];
 
@@ -14,12 +17,20 @@ const ItemDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
+  const fetchItem = async () => {
+    try {
+      const { data } = await API.get(`/api/items/${id}`);
+      setItem(data);
+    } catch {
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    API.get(`/api/items/${id}`)
-      .then(({ data }) => setItem(data))
-      .catch(() => navigate('/dashboard'))
-      .finally(() => setLoading(false));
-  }, [id, navigate]);
+    fetchItem();
+  }, [id]);
 
   const isOwner = item?.owner?._id === user?._id;
 
@@ -79,6 +90,7 @@ const ItemDetailPage = () => {
 
       <div className="max-w-3xl mx-auto">
 
+        {/* Back */}
         <button
           onClick={() => navigate(-1)}
           className="text-green-600 hover:underline mb-6"
@@ -87,10 +99,23 @@ const ItemDetailPage = () => {
         </button>
 
 
+        {/* Pending notice */}
+        {!item.isApproved && isOwner && (
+          <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mb-6">
+            <p className="font-bold text-yellow-800">
+              ⏳ Your listing is under review
+            </p>
+            <p className="text-sm text-yellow-700">
+              It will be visible once approved by admin.
+            </p>
+          </div>
+        )}
+
+
         <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
 
 
-          {/* IMAGE */}
+          {/* Image */}
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -98,7 +123,7 @@ const ItemDetailPage = () => {
               className="w-full h-72 object-cover"
             />
           ) : (
-            <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-7xl">
+            <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-6xl">
               📦
             </div>
           )}
@@ -107,7 +132,7 @@ const ItemDetailPage = () => {
           <div className="p-8">
 
 
-            {/* TITLE */}
+            {/* Title */}
             <div className="flex justify-between mb-4">
 
               <div>
@@ -120,41 +145,21 @@ const ItemDetailPage = () => {
                 </p>
               </div>
 
-              <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">
+
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
                 {item.status}
               </span>
 
             </div>
 
 
-            {/* ✅ PENDING NOTICE */}
-            {!item.isApproved && isOwner && (
-              <div className="bg-yellow-50 border border-yellow-300 rounded-2xl px-5 py-4 mb-6 flex items-start gap-3">
-
-                <span className="text-2xl">⏳</span>
-
-                <div>
-                  <p className="font-bold text-yellow-800">
-                    Your listing is under review
-                  </p>
-
-                  <p className="text-yellow-700 text-sm mt-1">
-                    This item is not yet visible to other users.
-                    An admin will approve it shortly before it goes live.
-                  </p>
-                </div>
-
-              </div>
-            )}
-
-
-            {/* DESCRIPTION */}
+            {/* Description */}
             <p className="text-gray-600 mb-6">
               {item.description}
             </p>
 
 
-            {/* PRICE */}
+            {/* Lend price */}
             {item.category === 'Lend' && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
 
@@ -170,27 +175,60 @@ const ItemDetailPage = () => {
             )}
 
 
-            {/* CONTACT */}
+            {/* Seller rating */}
+            {!isOwner && item.owner?.averageRating > 0 && (
+
+              <div className="mb-6 bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
+
+                <p className="text-sm text-gray-500">
+                  Seller Rating
+                </p>
+
+                <div className="flex items-center gap-2">
+
+                  <StarRating
+                    value={Math.round(item.owner.averageRating)}
+                    readonly
+                  />
+
+                  <span className="font-bold text-yellow-700">
+                    {item.owner.averageRating.toFixed(1)}
+                  </span>
+
+                  <span className="text-xs text-gray-400">
+                    ({item.owner.totalRatings} reviews)
+                  </span>
+
+                </div>
+
+              </div>
+
+            )}
+
+
+            {/* Contact */}
             {!isOwner && (
-              <div className="border-t pt-6 space-y-3">
+
+              <div className="space-y-3 mb-6">
 
 
-                <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border">
+                {/* Email */}
+                <div className="flex justify-between items-center border rounded-xl p-3">
 
                   <div>
                     <p className="text-xs text-gray-400">
                       Email
                     </p>
 
-                    <p className="text-sm font-medium">
+                    <p className="text-sm">
                       {item.owner?.email}
                     </p>
                   </div>
 
 
                   <a
-                    href={`mailto:${item.owner?.email}`}
-                    className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs"
+                    href={`mailto:${item.owner?.email}?subject=Interested in ${item.title}`}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-xs"
                   >
                     Send Email
                   </a>
@@ -198,16 +236,17 @@ const ItemDetailPage = () => {
                 </div>
 
 
+                {/* WhatsApp */}
                 {item.owner?.phone && (
 
-                  <div className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border">
+                  <div className="flex justify-between items-center border rounded-xl p-3">
 
                     <div>
                       <p className="text-xs text-gray-400">
                         Phone
                       </p>
 
-                      <p className="text-sm font-medium">
+                      <p className="text-sm">
                         {item.owner.phone}
                       </p>
                     </div>
@@ -217,7 +256,7 @@ const ItemDetailPage = () => {
                       href={`https://wa.me/${item.owner.phone.replace(/[^0-9]/g, '')}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="bg-green-500 text-white px-3 py-1.5 rounded text-xs"
+                      className="bg-green-500 text-white px-3 py-1 rounded text-xs"
                     >
                       WhatsApp
                     </a>
@@ -227,12 +266,14 @@ const ItemDetailPage = () => {
                 )}
 
               </div>
+
             )}
 
 
-            {/* OWNER ACTIONS */}
+            {/* Owner actions */}
             {isOwner && (
-              <div className="border-t pt-6 mt-6">
+
+              <div className="border-t pt-6">
 
                 <p className="text-sm font-medium mb-3">
                   Update Status
@@ -242,6 +283,7 @@ const ItemDetailPage = () => {
                 <div className="flex gap-2 flex-wrap">
 
                   {STATUSES.map((s) => (
+
                     <button
                       key={s}
                       onClick={() => handleStatusChange(s)}
@@ -250,6 +292,7 @@ const ItemDetailPage = () => {
                     >
                       {s}
                     </button>
+
                   ))}
 
 
@@ -268,17 +311,45 @@ const ItemDetailPage = () => {
                     Delete
                   </button>
 
+
                 </div>
 
               </div>
+
             )}
+
+
+            {/* Reviews */}
+            <div className="border-t pt-6 mt-6">
+
+
+              {item.status === 'Gifted' && (
+                <ReviewForm
+                  item={item}
+                  onReviewSubmitted={fetchItem}
+                />
+              )}
+
+
+              <h3 className="font-bold mt-6 mb-3">
+                ⭐ Reviews
+              </h3>
+
+
+              <ReviewsList itemId={id} />
+
+
+            </div>
 
 
           </div>
 
+
         </div>
 
+
       </div>
+
 
     </div>
   );

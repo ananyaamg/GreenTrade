@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema(
       default: 'None',
     },
     totalCO2Saved: { type: Number, default: 0 },
+    averageRating: {
+  type: Number,
+  default: 0,
+},
+totalRatings: {
+  type: Number,
+  default: 0,
+},
     isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }

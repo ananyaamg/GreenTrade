@@ -36,7 +36,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/items', require('./routes/itemRoutes'));
 app.use('/api/leaderboard', require('./routes/leaderboardRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
-
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 
 // Health routes
 app.get('/', (req, res) => {
