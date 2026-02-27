@@ -61,6 +61,9 @@ const Navbar = () => {
             >
               🏆 Leaderboard
             </Link>
+            <Link to="/profile" className="hover:text-green-200 transition-colors text-sm">
+            👤 Profile
+            </Link>
 
 
             {/* ADMIN */}
