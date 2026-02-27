@@ -1,5 +1,3 @@
-
-
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const getLeaderboard = asyncHandler(async (req, res) => {
@@ -18,7 +16,7 @@ const getMyImpact = asyncHandler(async (req, res) => {
     owner: req.user._id,
     status: 'Gifted',
   });
-
+  
   const totalListings = await Item.countDocuments({ owner: req.user._id });
 
   res.json({

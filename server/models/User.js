@@ -65,7 +65,13 @@ const userSchema = new mongoose.Schema(
       default: false
     },
 
-    // ✅ PASSWORD RESET FIELDS
+    // ✅ NEW FIELD — allows admin to view multiple zip codes
+    adminZipCodes: {
+      type: [String],
+      default: []   // empty array = admin can see ALL items
+    },
+
+    // PASSWORD RESET FIELDS
     resetPasswordToken: {
       type: String,
       default: null
